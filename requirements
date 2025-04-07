@@ -1,0 +1,5 @@
+podman
+xpra (Version 6.* from the stable repositories. See: https://github.com/Xpra-org/xpra/wiki/Download)
+python3
+Qt6
+python-pyqt6
