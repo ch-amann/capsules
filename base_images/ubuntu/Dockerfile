@@ -1,4 +1,4 @@
-FROM ubuntu:noble
+FROM docker.io/ubuntu:noble
 
 ARG USER_ID
 ARG GROUP_ID

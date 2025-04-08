@@ -1,0 +1,13 @@
+"pasta" network is not available on all systems. Fallback to "bridge"
+
+command shortcuts
+
+add colors to capsules/templates and windows
+
+clone templates/capsule (change network setting when doing so)
+
+exit all containers on application close
+
+mount directories
+
+copy scripts/images to .capsules/data dir so they have a fixed path independent of the git repo

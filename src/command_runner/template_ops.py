@@ -50,9 +50,6 @@ class TemplateOps(BaseCommandRunner):
 
     def delete_template(self, template_name: str) -> CommandResult:
         """Delete template and its resources"""
-        if not check_template_exists(template_name):
-            return CommandResult(False, f"Template '{template_name}' does not exist")
-
         dependent_capsules = self._get_dependent_capsules(template_name)
         if dependent_capsules:
             return CommandResult(False, f"Template has dependent capsules: {', '.join(dependent_capsules)}")

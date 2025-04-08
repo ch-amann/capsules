@@ -1,4 +1,4 @@
-FROM archlinux:latest
+FROM docker.io/archlinux:latest
 
 ARG USER_ID
 ARG GROUP_ID

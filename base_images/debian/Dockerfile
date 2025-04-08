@@ -1,4 +1,4 @@
-FROM debian:12
+FROM docker.io/debian:12
 
 ARG USER_ID
 ARG GROUP_ID

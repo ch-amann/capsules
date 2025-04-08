@@ -50,6 +50,7 @@ Capsules is a powerful application for creating and managing secure application 
 
 ## 🚀 Installation & Running
 
+
 ### Clone the Repository
 ```bash
 git clone https://github.com/yourusername/capsules.git
@@ -59,12 +60,12 @@ cd capsules
 ### Install Dependencies
 On Debian/Ubuntu:
 ```bash
-sudo apt install podman xpra python3-pyqt6
-```
+# Add repository for xpra 6.*
+wget -qO - https://xpra.org/gpg.asc | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/xpra-archive.gpg
+echo "deb https://xpra.org/ $(lsb_release -c | awk '{print $2}') main" | sudo tee /etc/apt/sources.list.d/xpra-$(lsb_release -c | awk '{print $2}').list
 
-On Fedora:
-```bash
-sudo dnf install podman xpra python3-qt6
+sudo apt update
+sudo apt install podman xpra python3-pyqt6
 ```
 
 On Arch Linux:
