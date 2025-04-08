@@ -19,6 +19,10 @@ Templates serve as efficient, read-only base images for your containers:
 - Capsules maintain isolation - changes in capsules don't affect the template
 - Save disk space through efficient filesystem sharing
 
+<p align="center">
+  <img src="./res/main_window.png" alt="Capsules Main Window" width="800"/>
+</p>
+
 ## ✨ Key Features
 
 ### 🛡️ Security First
