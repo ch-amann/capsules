@@ -23,7 +23,7 @@ from typing import Optional
 
 from .base import BaseCommandRunner, CommandResult
 from misc import Entity
-from utils import get_capsule_shared_dir, get_template_mount_point
+from utils import get_capsule_shared_dir, get_template_shared_dir
 from window_log import WindowLog
 from settings import Settings
 
@@ -57,7 +57,7 @@ class TerminalOps(BaseCommandRunner):
 
     def open_shared_directory(self, entity_type: Entity, name: str) -> CommandResult:
         """Open shared directory for template or capsule"""
-        path = get_capsule_shared_dir(name) if entity_type == Entity.CAPSULE else get_template_mount_point(name)
+        path = get_capsule_shared_dir(name) if entity_type == Entity.CAPSULE else get_template_shared_dir(name)
         
         try:
             subprocess.run(["xdg-open", path], check=False)

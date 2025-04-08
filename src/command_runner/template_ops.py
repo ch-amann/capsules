@@ -25,7 +25,7 @@ from pathlib import Path
 from .base import BaseCommandRunner, CommandResult
 from misc import ProjectBaseDir, CapsulesDir
 from utils import (
-    get_template_dir, get_template_volume, check_template_exists
+    get_template_dir, get_template_rootfs_dir, check_template_exists, get_template_shared_dir
 )
 from window_log import WindowLog
 
@@ -60,7 +60,6 @@ class TemplateOps(BaseCommandRunner):
         try:
             self._run_command(["podman", "rm", "-f", "-t", "0", template_name], check=True)
             self._run_command(["podman", "unshare", "rm", "-rf", get_template_dir(template_name)], check=True)
-            self._run_command(["podman", "volume", "rm", get_template_volume(template_name)], check=True)
             return CommandResult(success=True)
         except Exception as e:
             return CommandResult(False, str(e))
@@ -128,16 +127,7 @@ class TemplateOps(BaseCommandRunner):
             # Create main template directory
             template_dir = get_template_dir(template_name)
             template_dir.mkdir(parents=True, exist_ok=True)
-            
-            # Create and setup scripts directory
-            template_script_dir = template_dir / "scripts"
-            template_script_dir.mkdir(exist_ok=True)
-            
-            # Copy scripts from project base
-            script_dir = ProjectBaseDir / "scripts"
-            for script in script_dir.glob("*"):
-                shutil.copy2(script, template_script_dir)
-            
+
             # Store base image info
             (template_dir / "base_image").write_text(base_image)
             
@@ -149,43 +139,42 @@ class TemplateOps(BaseCommandRunner):
 
     def _create_template_container(self, template_name: str, base_image: str, network_enabled: bool) -> CommandResult:
         """Create and configure template container"""
-        try:
-            template_volume = get_template_volume(template_name)
-            
-            # Create template volume
-            result = self._run_command(["podman", "volume", "create", template_volume])
-            if not result.success:
-                WindowLog.log_error(f"Failed to create volume: {result.error_message}")
-                return result
 
-            # Setup template volume with initial content
-            template_script_dir = get_template_dir(template_name) / "scripts"
+        # Create directory that holds the rootfs files
+        rootfs_dir = get_template_rootfs_dir(template_name)
+        rootfs_dir.mkdir(parents=True, exist_ok=True)
+
+        try:
+            # Setup rootfs directory with initial content
             result = self._run_command([
                 "podman", "run", "--rm",
                 "--name", f"{template_name}_SETUP",
                 "--network=none",
                 "--userns=keep-id",
-                "-v", f"{template_script_dir}:/scripts",
-                "-v", f"{template_volume}:/template_volume",
+                "-v", f"{rootfs_dir}:/mnt/root_dirs",
                 f"{base_image}-capsule-image",
-                "sudo", "/scripts/copy_template_dirs.sh"
+                "sudo", "copy_root_directories.sh"
             ], log_output=True)
             
             if not result.success:
                 return result
 
-            # Get mount directories for overlayfs
-            volume_path = Path.home() / ".local/share/containers/storage/volumes" / template_volume / "_data"
-            mounts = [f"-v {d}:/{d.name}" for d in volume_path.glob("*/")]
+            # Get mount directories
+            mounts = [f"-v {d}:/{d.name}" for d in rootfs_dir.glob("*/")]
             
             # Create template container
             network_name = "pasta" if network_enabled else "none"
+
+            # Create template shared directory
+            template_shared_dir = get_template_shared_dir(template_name)
+            template_shared_dir.mkdir(parents=True, exist_ok=True)
             
             command = [
                 "podman", "create",
                 "--name", template_name,
                 "--userns=keep-id",
                 f"--network={network_name}",
+                "-v", f"{template_shared_dir}:/template_data",
                 *" ".join(mounts).split(),
                 f"{base_image}-capsule-image",
                 "sleep", "infinity"

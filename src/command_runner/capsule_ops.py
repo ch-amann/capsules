@@ -18,15 +18,16 @@
 """Capsule operations"""
 
 import os
-import shutil
 from pathlib import Path
-from typing import Optional, Tuple, List
+from typing import Optional, List
+
+import traceback
 
 from .base import BaseCommandRunner, CommandResult
 from utils import (
     get_capsule_dir, get_capsule_shared_dir, check_capsule_exists,
     check_template_exists, get_xpra_socket_path,
-    get_capsule_shared_dir, get_template_mount_directories,
+    get_capsule_shared_dir, get_template_mount_directories
 )
 from window_log import WindowLog
 
@@ -157,4 +158,5 @@ class CapsuleOps(BaseCommandRunner):
 
         except Exception as e:
             WindowLog.log_error(f"Failed to create capsule container: {e}")
+            print(traceback.format_exc())
             return CommandResult(False, str(e))

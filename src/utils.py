@@ -40,6 +40,7 @@ def get_project_base_dir() -> Path:
     """Get the project's base directory"""
     return Path(__file__).parent.parent.resolve()
 
+# Capsule operations
 def get_capsule_dir(capsule_name: str) -> Path:
     """Get capsule configuration directory"""
     return CapsulesDir / capsule_name
@@ -48,13 +49,36 @@ def get_capsule_shared_dir(capsule_name: str) -> Path:
     """Get shared capsule directory"""
     return get_capsule_dir(capsule_name) / "shared"
 
+def check_capsule_exists(capsule_name: str) -> bool:
+    """Check if a capsule exists (directory or container)"""
+    return get_capsule_dir(capsule_name).exists() or check_podman_container_exists(capsule_name)
+
+# Template operations
 def get_template_dir(template_name: str) -> Path:
     """Get template configuration directory"""
     return TemplateDir / template_name
 
-def get_template_volume(template_name: str) -> str:
-    """Get template volume name"""
-    return f"{template_name}_template_volume"
+def get_template_shared_dir(template_name: str) -> Path:
+    """Get shared template directory"""
+    return get_template_dir(template_name) / "shared"
+
+def get_template_rootfs_dir(template_name: str) -> Path:
+    """Get shared template directory"""
+    return get_template_dir(template_name) / "rootfs"
+
+def get_template_rootfs_directories(template_name: str) -> List[Path]:
+    """Get list of template mount directories"""
+    rootfs_path = get_template_rootfs_dir(template_name)
+    return [dir_path for dir_path in rootfs_path.glob("*/") if dir_path.is_dir()]
+
+def get_template_mount_directories(template_name: str) -> List[Path]:
+    """Get list of template mount directories"""
+    rootfs_path = get_template_rootfs_dir(template_name)
+    return [dir_path for dir_path in rootfs_path.glob("*/") if dir_path.is_dir()]
+
+def check_template_exists(template_name: str) -> bool:
+    """Check if a template exists (directory and container)"""
+    return get_template_dir(template_name).exists() and check_podman_container_exists(template_name)
 
 # Xpra socket operations
 def get_xpra_socket_path(capsule_name: str) -> Path:
@@ -68,24 +92,3 @@ def check_podman_container_exists(container_name: str) -> bool:
     command = f"podman ps -a --format '{{{{.Names}}}}' | grep -w {container_name}"
     return os.system(command) == 0
 
-def check_capsule_exists(capsule_name: str) -> bool:
-    """Check if a capsule exists (directory or container)"""
-    return get_capsule_dir(capsule_name).exists() or check_podman_container_exists(capsule_name)
-
-def check_template_exists(template_name: str) -> bool:
-    """Check if a template exists (directory and container)"""
-    return get_template_dir(template_name).exists() and check_podman_container_exists(template_name)
-
-# Mount point operations
-def get_capsule_mount_point(capsule_name: str) -> Path:
-    """Get capsule volume mount point"""
-    return ContainerPaths.PODMAN_VOLUMES / get_capsule_volume(capsule_name) / "_data"
-
-def get_template_mount_point(template_name: str) -> Path:
-    """Get template volume mount point"""
-    return ContainerPaths.PODMAN_VOLUMES / get_template_volume(template_name) / "_data"
-
-def get_template_mount_directories(template_name: str) -> List[Path]:
-    """Get list of template mount directories"""
-    volume_path = get_template_mount_point(template_name)
-    return [dir_path for dir_path in volume_path.glob("*/") if dir_path.is_dir()]
