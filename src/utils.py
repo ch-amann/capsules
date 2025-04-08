@@ -21,6 +21,7 @@ Provides path handling, container operations, and system configuration.
 """
 
 import os
+import getpass
 from pathlib import Path
 from typing import Tuple, List
 from dataclasses import dataclass
@@ -82,7 +83,7 @@ def get_user_id_mappings() -> Tuple[str, str]:
                         return int(line.split(':')[2])
             raise ValueError(f"No entry found for user {username}")
         
-        username = os.getlogin()
+        username = getpass.getuser()
         max_users = read_max_id(ContainerPaths.SUBUID_FILE, username)
         max_groups = read_max_id(ContainerPaths.SUBGID_FILE, username)
         
