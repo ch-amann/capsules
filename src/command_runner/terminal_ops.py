@@ -36,6 +36,23 @@ class TerminalOps(BaseCommandRunner):
             "alacritty", "kitty", "st"
         ]
 
+    def _get_terminal_command(self, terminal: str, container_name: str) -> list[str]:
+        """Get the correct command format for different terminals"""
+        podman_cmd = ["podman", "exec", "-it", container_name, "/bin/bash"]
+        
+        # Terminal-specific command formats
+        if terminal in ["gnome-terminal", "mate-terminal"]:
+            return [terminal, "--", *podman_cmd]
+        elif terminal == "konsole":
+            return [terminal, "-e", *podman_cmd]
+        elif terminal == "xfce4-terminal":
+            return [terminal, "--command", " ".join(podman_cmd)]
+        elif terminal in ["kitty", "alacritty"]:
+            return [terminal, *podman_cmd]
+        else:
+            # Default format for other terminals
+            return [terminal, "-e", *podman_cmd]
+
     def open_terminal(self, container_name: str) -> CommandResult:
         """Open a terminal in the specified container"""
         WindowLog.log_info(f"Opening terminal in: {container_name}")
@@ -45,8 +62,9 @@ class TerminalOps(BaseCommandRunner):
             return CommandResult(False, "No suitable terminal found")
 
         try:
+            cmd = self._get_terminal_command(terminal, container_name)
             subprocess.Popen(
-                [terminal, "--", "podman", "exec", "-it", container_name, "/bin/bash"],
+                cmd,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
                 start_new_session=True

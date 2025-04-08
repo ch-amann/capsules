@@ -9,3 +9,4 @@ exit all containers on application close
 mount directories
 
 copy scripts/images to .capsules/data dir so they have a fixed path independent of the git repo
+
