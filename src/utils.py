@@ -21,19 +21,10 @@ Provides path handling, container operations, and system configuration.
 """
 
 import os
-import getpass
 from pathlib import Path
-from typing import Tuple, List
-from dataclasses import dataclass
+from typing import List
 
 from misc import CapsulesDir, TemplateDir
-
-@dataclass
-class ContainerPaths:
-    """Container-specific path definitions"""
-    PODMAN_VOLUMES: Path = Path.home() / ".local/share/containers/storage/volumes"
-    SUBUID_FILE: Path = Path("/etc/subuid")
-    SUBGID_FILE: Path = Path("/etc/subgid")
 
 # Path operations
 def get_project_base_dir() -> Path:
@@ -82,7 +73,7 @@ def check_template_exists(template_name: str) -> bool:
 
 # Xpra socket operations
 def get_xpra_socket_path(capsule_name: str) -> Path:
-    """Get the actual Xpra socket path in the container volume"""
+    """Get the actual Xpra socket path in the capsules' shared directory"""
     capsule_shared_dir = get_capsule_shared_dir(capsule_name)
     return capsule_shared_dir / "xpra" / f"{capsule_name}_socket"
 

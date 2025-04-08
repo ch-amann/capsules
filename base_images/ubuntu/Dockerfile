@@ -17,7 +17,8 @@ RUN echo "deb https://xpra.org/ noble main" > /etc/apt/sources.list.d/xpra-noble
 RUN apt-get update
 RUN apt-get install -y xpra
 
-
+COPY ./setup_script.sh /usr/local/bin/copy_root_directories.sh
+RUN chmod +x /usr/local/bin/copy_root_directories.sh
 
 # User and group with uid/gid 1000 exist already.
 # They are both called 'ubuntu' which is fine.

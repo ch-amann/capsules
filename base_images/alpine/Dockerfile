@@ -11,5 +11,8 @@ RUN adduser -h /home/user -s /bin/bash -u $USER_ID -G user -D user
 RUN echo "user ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/user
 RUN chmod 0440 /etc/sudoers.d/user
 
+COPY ./setup_script.sh /usr/local/bin/copy_root_directories.sh
+RUN chmod +x /usr/local/bin/copy_root_directories.sh
+
 USER user
 WORKDIR /home/user

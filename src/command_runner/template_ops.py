@@ -67,7 +67,7 @@ class TemplateOps(BaseCommandRunner):
     def get_available_base_images(self) -> List[str]:
         """Get list of available base images"""
         try:
-            images_dir = ProjectBaseDir / "images"
+            images_dir = ProjectBaseDir / "base_images"
             if not images_dir.exists():
                 WindowLog.log_error(f"Images directory not found: {images_dir}")
                 return []
@@ -95,7 +95,7 @@ class TemplateOps(BaseCommandRunner):
     def _ensure_base_image(self, base_image: str) -> bool:
         """Ensure base image exists and is up to date"""
         try:
-            dockerfile = ProjectBaseDir / "images" / base_image / "Dockerfile"
+            dockerfile = ProjectBaseDir / "base_images" / base_image / "Dockerfile"
             if not dockerfile.exists():
                 return False
 
