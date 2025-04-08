@@ -70,7 +70,7 @@ This should return `true`
 
 ### Clone the Repository
 ```bash
-git clone https://github.com/yourusername/capsules.git
+git clone https://github.com/ch-amann/capsules.git
 cd capsules
 ```
 
