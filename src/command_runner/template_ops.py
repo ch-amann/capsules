@@ -25,7 +25,7 @@ from pathlib import Path
 from .base import BaseCommandRunner, CommandResult
 from misc import ProjectBaseDir, CapsulesDir
 from utils import (
-    get_template_dir, get_template_volume, check_template_exists, get_user_id_mappings
+    get_template_dir, get_template_volume, check_template_exists
 )
 from window_log import WindowLog
 
@@ -58,9 +58,9 @@ class TemplateOps(BaseCommandRunner):
             return CommandResult(False, f"Template has dependent capsules: {', '.join(dependent_capsules)}")
 
         try:
-            self._run_command(["podman", "rm", "-f", "-t", "0", template_name], check=False)
-            shutil.rmtree(get_template_dir(template_name), ignore_errors=True)
-            self._run_command(["podman", "volume", "rm", get_template_volume(template_name)], check=False)
+            self._run_command(["podman", "rm", "-f", "-t", "0", template_name], check=True)
+            self._run_command(["podman", "unshare", "rm", "-rf", get_template_dir(template_name)], check=True)
+            self._run_command(["podman", "volume", "rm", get_template_volume(template_name)], check=True)
             return CommandResult(success=True)
         except Exception as e:
             return CommandResult(False, str(e))
@@ -158,17 +158,13 @@ class TemplateOps(BaseCommandRunner):
                 WindowLog.log_error(f"Failed to create volume: {result.error_message}")
                 return result
 
-            # Get ID mappings
-            uid_mappings, gid_mappings = get_user_id_mappings()
-
             # Setup template volume with initial content
             template_script_dir = get_template_dir(template_name) / "scripts"
             result = self._run_command([
                 "podman", "run", "--rm",
                 "--name", f"{template_name}_SETUP",
                 "--network=none",
-                *uid_mappings.split(),
-                *gid_mappings.split(),
+                "--userns=keep-id",
                 "-v", f"{template_script_dir}:/scripts",
                 "-v", f"{template_volume}:/template_volume",
                 f"{base_image}-capsule-image",
@@ -188,9 +184,8 @@ class TemplateOps(BaseCommandRunner):
             command = [
                 "podman", "create",
                 "--name", template_name,
+                "--userns=keep-id",
                 f"--network={network_name}",
-                *uid_mappings.split(),
-                *gid_mappings.split(),
                 *" ".join(mounts).split(),
                 f"{base_image}-capsule-image",
                 "sleep", "infinity"

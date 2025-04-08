@@ -44,13 +44,13 @@ def get_capsule_dir(capsule_name: str) -> Path:
     """Get capsule configuration directory"""
     return CapsulesDir / capsule_name
 
+def get_capsule_shared_dir(capsule_name: str) -> Path:
+    """Get shared capsule directory"""
+    return get_capsule_dir(capsule_name) / "shared"
+
 def get_template_dir(template_name: str) -> Path:
     """Get template configuration directory"""
     return TemplateDir / template_name
-
-def get_capsule_volume(capsule_name: str) -> str:
-    """Get capsule volume name"""
-    return f"{capsule_name}_capsule_volume"
 
 def get_template_volume(template_name: str) -> str:
     """Get template volume name"""
@@ -59,48 +59,8 @@ def get_template_volume(template_name: str) -> str:
 # Xpra socket operations
 def get_xpra_socket_path(capsule_name: str) -> Path:
     """Get the actual Xpra socket path in the container volume"""
-    capsule_volume = get_capsule_volume(capsule_name)
-    return ContainerPaths.PODMAN_VOLUMES / capsule_volume / "_data/xpra" / f"{capsule_name}_socket"
-
-def get_xpra_socket_symlink_path(capsule_name: str) -> Path:
-    """Get the Xpra socket symlink path"""
-    return get_capsule_dir(capsule_name) / "socket" / "socket"
-
-# System configuration
-def get_user_id_mappings() -> Tuple[str, str]:
-    """Get UID/GID mappings for rootless containers"""
-    try:
-        user_id = os.getuid()
-        group_id = os.getgid()
-        next_user_id = user_id + 1
-        next_group_id = group_id + 1
-        
-        # Get max subuid/subgid values
-        def read_max_id(filepath: Path, username: str) -> int:
-            with open(filepath) as f:
-                for line in f:
-                    if line.startswith(username):
-                        return int(line.split(':')[2])
-            raise ValueError(f"No entry found for user {username}")
-        
-        username = getpass.getuser()
-        max_users = read_max_id(ContainerPaths.SUBUID_FILE, username)
-        max_groups = read_max_id(ContainerPaths.SUBGID_FILE, username)
-        
-        uid_mappings = (
-            f"--uidmap 0:1:{user_id} "
-            f"--uidmap {user_id}:0:1 "
-            f"--uidmap {next_user_id}:{next_user_id}:{max_users - user_id}"
-        )
-        gid_mappings = (
-            f"--gidmap 0:1:{group_id} "
-            f"--gidmap {group_id}:0:1 "
-            f"--gidmap {next_group_id}:{next_group_id}:{max_groups - group_id}"
-        )
-        
-        return uid_mappings, gid_mappings
-    except Exception as e:
-        raise RuntimeError(f"Failed to get user ID mappings: {e}")
+    capsule_shared_dir = get_capsule_shared_dir(capsule_name)
+    return capsule_shared_dir / "xpra" / f"{capsule_name}_socket"
 
 # Container existence checks
 def check_podman_container_exists(container_name: str) -> bool:

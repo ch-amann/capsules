@@ -22,7 +22,7 @@ import time
 
 from .base import BaseCommandRunner, CommandResult
 from utils import (
-    get_xpra_socket_symlink_path, get_capsule_dir
+    get_xpra_socket_path, get_capsule_dir
 )
 from window_log import WindowLog
 
@@ -41,9 +41,8 @@ class XpraOps(BaseCommandRunner):
         except Exception as e:
             return CommandResult(False, f"Xpra not installed or not in PATH: {e}")
 
-        # Setup directories and symlinks
         capsule_dir = get_capsule_dir(capsule_name)
-        socket_path = get_xpra_socket_symlink_path(capsule_name)
+        socket_path = get_xpra_socket_path(capsule_name)
 
         # Start xpra client in background
         log_file = capsule_dir / "xpra_client.log"
@@ -74,7 +73,7 @@ class XpraOps(BaseCommandRunner):
 
     def xpra_detach(self, capsule_name: str) -> CommandResult:
         """Detach xpra from capsule"""
-        socket_path = get_xpra_socket_symlink_path(capsule_name)
+        socket_path = get_xpra_socket_path(capsule_name)
         result = self._run_command(["xpra", "detach", f"socket:{socket_path}"])
         if not result.success:
             return result

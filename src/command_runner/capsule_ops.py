@@ -24,9 +24,9 @@ from typing import Optional, Tuple, List
 
 from .base import BaseCommandRunner, CommandResult
 from utils import (
-    get_capsule_dir, get_capsule_volume, check_capsule_exists,
-    check_template_exists, get_xpra_socket_path, get_user_id_mappings,
-    get_xpra_socket_symlink_path, get_capsule_mount_point, get_template_mount_directories,
+    get_capsule_dir, get_capsule_shared_dir, check_capsule_exists,
+    check_template_exists, get_xpra_socket_path,
+    get_capsule_shared_dir, get_template_mount_directories,
 )
 from window_log import WindowLog
 
@@ -57,9 +57,8 @@ class CapsuleOps(BaseCommandRunner):
             if self.xpra_is_attached(capsule_name):
                 self.xpra_detach(capsule_name)
 
-            self._run_command(["podman", "rm", "-f", "-t", "0", capsule_name], check=False)
+            self._run_command(["podman", "rm", "-f", "-t", "0", capsule_name], check=True)
             self._run_command(["podman", "unshare", "rm", "-rf", get_capsule_dir(capsule_name)], check=True)
-            self._run_command(["podman", "volume", "rm", get_capsule_volume(capsule_name)], check=False)
             
             return CommandResult(success=True)
         except Exception as e:
@@ -89,16 +88,9 @@ class CapsuleOps(BaseCommandRunner):
             # Store template name
             (capsule_dir / "template").write_text(template_name)
             
-            # Create socket symlink
+            # Create socket directory
             socket_path = get_xpra_socket_path(capsule_name)
-            symlink_path = get_xpra_socket_symlink_path(capsule_name)
             socket_path.parent.mkdir(parents=True, exist_ok=True)
-            symlink_path.parent.mkdir(parents=True, exist_ok=True)
-
-            try:
-                symlink_path.symlink_to(socket_path)
-            except Exception as e:
-                return CommandResult(False, f"Failed to create socket symlink: {e}")
 
             return capsule_dir
         except Exception as e:
@@ -120,9 +112,6 @@ class CapsuleOps(BaseCommandRunner):
             # Use pasta for better security in rootless containers
             network_name = "pasta" if network_enabled else "none"
             
-            # Get user mappings
-            uid_mappings, gid_mappings = get_user_id_mappings()
-            
             # Setup overlay filesystem mounts
             overlay_fs_dir = get_capsule_dir(capsule_name) / "overlay_fs"
             template_mount_dirs = get_template_mount_directories(template_name)
@@ -143,25 +132,20 @@ class CapsuleOps(BaseCommandRunner):
 
                 overlay_fs_mounts += f"-v {dir_path}:/{basename}:O,upperdir={upper_dir},workdir={work_dir} "
 
-            # Create capsule volume
-            capsule_volume = get_capsule_volume(capsule_name)
-            result = self._run_command(["podman", "volume", "create", capsule_volume])
-
-            if not result.success:
-                WindowLog.log_error(f"Failed to create volume: {result.error_message}")
-                return result
+            # Create capsule shared directory
+            capsule_shared_dir = get_capsule_shared_dir(capsule_name)
+            capsule_shared_dir.mkdir(parents=True, exist_ok=True)
 
             # Create container
             command = [
                 "podman", "create",
                 "--name", capsule_name,
                 "--user", f"{os.getuid()}:{os.getuid()}",
+                "--userns=keep-id",
                 f"--network={network_name}",
                 *port_mapping_arguments.split(),
-                *uid_mappings.split(),
-                *gid_mappings.split(),
                 "-e", "DISPLAY=:0",
-                "-v", f"{capsule_volume}:/capsule_data",
+                "-v", f"{capsule_shared_dir}:/capsule_data",
                 *overlay_fs_mounts.split(),
                 f"{base_image}-capsule-image",
                 "xpra", "start", 
