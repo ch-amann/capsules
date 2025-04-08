@@ -4,7 +4,20 @@
   <img src="./res/icon_background.png" alt="Capsules Logo" width="200"/>
 </p>
 
-Capsules is a powerful application for creating and managing secure application containers with full GUI support. Built on Podman's secure rootless container technology, it provides proper desktop integration and a security-first design. Think Docker, but with native desktop integration and without the daemon or root requirements.
+Capsules lets you run applications in secure, isolated containers while maintaining full graphical capabilities. Built on Podman's rootless container technology and Xpra's seamless X11 integration, it provides a secure sandbox environment with native desktop interaction.
+
+## 🎯 What It Does
+
+### Secure Application Sandboxing
+Run applications in isolated containers without sacrificing usability. Xpra provides seamless X11 forwarding, letting you interact with containerized applications as if they were running natively.
+
+### Template-Based Architecture
+Templates serve as efficient, read-only base images for your containers:
+- Create a template with your desired base system and applications
+- Spawn multiple capsules from a single template
+- Changes to templates automatically propagate to derived capsules
+- Capsules maintain isolation - changes in capsules don't affect the template
+- Save disk space through efficient filesystem sharing
 
 ## ✨ Key Features
 
@@ -46,7 +59,7 @@ Capsules is a powerful application for creating and managing secure application 
    ```bash
    podman info --format '{{.Host.Security.Rootless}}'
    ```
-2. Should return `true`
+This should return `true`
 
 ## 🚀 Installation & Running
 
