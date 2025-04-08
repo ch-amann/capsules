@@ -163,21 +163,19 @@ class TemplateOps(BaseCommandRunner):
             template_shared_dir = get_template_shared_dir(template_name)
             template_shared_dir.mkdir(parents=True, exist_ok=True)
             
-            network_mode=""
-            if not network_enabled:
-                network_mode = "--network=none"
-
             command = [
                 "podman", "create",
                 "--name", template_name,
                 "--userns=keep-id",
-                network_mode,
                 "-v", f"{template_shared_dir}:/template_data",
-                *" ".join(mounts).split(),
-                f"{base_image}-capsule-image",
-                "sleep", "infinity"
+                *" ".join(mounts).split()
             ]
             
+            if not network_enabled:
+                command.append("--network=none")
+
+            command.extend([f"{base_image}-capsule-image", "sleep", "infinity"])
+
             return self._run_command(command, log_output=True)
             
         except Exception as e:

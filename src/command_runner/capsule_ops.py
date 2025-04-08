@@ -133,26 +133,22 @@ class CapsuleOps(BaseCommandRunner):
             capsule_shared_dir = get_capsule_shared_dir(capsule_name)
             capsule_shared_dir.mkdir(parents=True, exist_ok=True)
 
-            network_mode=""
-            if not network_enabled:
-                network_mode = "--network=none"
-
             # Create container
             command = [
                 "podman", "create",
                 "--name", capsule_name,
                 "--user", f"{os.getuid()}:{os.getuid()}",
                 "--userns=keep-id",
-                network_mode,
                 *port_mapping_arguments.split(),
                 "-e", "DISPLAY=:0",
                 "-v", f"{capsule_shared_dir}:/capsule_data",
-                *overlay_fs_mounts.split(),
-                f"{base_image}-capsule-image",
-                "xpra", "start", 
-                f"--bind=/capsule_data/xpra/{capsule_name}_socket",
-                "--daemon=no"
+                *overlay_fs_mounts.split()
             ]
+
+            if not network_enabled:
+                command.append("--network=none")
+
+            command.extend([f"{base_image}-capsule-image", "xpra", "start", f"--bind=/capsule_data/xpra/{capsule_name}_socket", "--daemon=no"])
 
             return self._run_command(command, log_output=True)
 
