@@ -108,10 +108,6 @@ class CapsuleOps(BaseCommandRunner):
 
             if ":" in base_image:
                 base_image  = base_image.split(":")[0]
-
-
-            # Use pasta for better security in rootless containers
-            network_name = "pasta" if network_enabled else "none"
             
             # Setup overlay filesystem mounts
             overlay_fs_dir = get_capsule_dir(capsule_name) / "overlay_fs"
@@ -143,7 +139,6 @@ class CapsuleOps(BaseCommandRunner):
                 "--name", capsule_name,
                 "--user", f"{os.getuid()}:{os.getuid()}",
                 "--userns=keep-id",
-                f"--network={network_name}",
                 *port_mapping_arguments.split(),
                 "-e", "DISPLAY=:0",
                 "-v", f"{capsule_shared_dir}:/capsule_data",

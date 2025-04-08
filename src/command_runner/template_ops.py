@@ -158,9 +158,6 @@ class TemplateOps(BaseCommandRunner):
 
             # Get mount directories
             mounts = [f"-v {d}:/{d.name}" for d in rootfs_dir.glob("*/")]
-            
-            # Create template container
-            network_name = "pasta" if network_enabled else "none"
 
             # Create template shared directory
             template_shared_dir = get_template_shared_dir(template_name)
@@ -170,7 +167,6 @@ class TemplateOps(BaseCommandRunner):
                 "podman", "create",
                 "--name", template_name,
                 "--userns=keep-id",
-                f"--network={network_name}",
                 "-v", f"{template_shared_dir}:/template_data",
                 *" ".join(mounts).split(),
                 f"{base_image}-capsule-image",
