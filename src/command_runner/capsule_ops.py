@@ -58,7 +58,7 @@ class CapsuleOps(BaseCommandRunner):
                 self.xpra_detach(capsule_name)
 
             self._run_command(["podman", "rm", "-f", "-t", "0", capsule_name], check=False)
-            shutil.rmtree(get_capsule_dir(capsule_name), ignore_errors=True)
+            self._run_command(["podman", "unshare", "rm", "-rf", get_capsule_dir(capsule_name)], check=True)
             self._run_command(["podman", "volume", "rm", get_capsule_volume(capsule_name)], check=False)
             
             return CommandResult(success=True)
@@ -124,7 +124,7 @@ class CapsuleOps(BaseCommandRunner):
             uid_mappings, gid_mappings = get_user_id_mappings()
             
             # Setup overlay filesystem mounts
-            overlay_fs_dir = get_capsule_mount_point(capsule_name) / "overlay_fs"
+            overlay_fs_dir = get_capsule_dir(capsule_name) / "overlay_fs"
             template_mount_dirs = get_template_mount_directories(template_name)
 
             port_mapping_arguments = ""
