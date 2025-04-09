@@ -18,16 +18,23 @@
 """Template operations"""
 
 import os
-import shutil
 from typing import List, Optional
 from pathlib import Path
+from dataclasses import dataclass
 
 from .base import BaseCommandRunner, CommandResult
-from misc import ProjectBaseDir, CapsulesDir
+from misc import ProjectBaseDir, CapsulesDir, ContainerStatus, Entity
 from utils import (
     get_template_dir, get_template_rootfs_dir, check_template_exists, get_template_shared_dir
 )
 from window_log import WindowLog
+
+@dataclass
+class TemplateData:
+    name: str
+    base_image: str
+    status: ContainerStatus
+    network: str
 
 class TemplateOps(BaseCommandRunner):
     def create_template(self, template_name: str, base_image: str, network_enabled: bool) -> CommandResult:
@@ -77,6 +84,16 @@ class TemplateOps(BaseCommandRunner):
         except Exception as e:
             WindowLog.log_error(f"Failed to get available base images: {e}")
             return []
+
+    def get_existing_templates(self) -> List[TemplateData]:
+        template_names = self.fetch_entities(Entity.TEMPLATE)
+        templates = []
+        for name in template_names:
+            base_image = self.get_template_base_image(name)
+            status = self.get_container_status(name)
+            network = self.get_container_network(name)
+            templates.append(TemplateData(name=name, base_image=base_image, status=status, network=network))
+        return templates
 
     def get_template_base_image(self, template_name: str) -> str:
         """Get base image name for a template"""

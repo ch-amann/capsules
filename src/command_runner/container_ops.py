@@ -21,6 +21,7 @@ from typing import List
 from .base import BaseCommandRunner, CommandResult
 from misc import Entity, ContainerStatus
 from utils import CapsulesDir, TemplateDir
+from window_log import WindowLog
 
 class ContainerOps(BaseCommandRunner):
     def fetch_entities(self, entity_type: Entity) -> List[str]:
@@ -31,6 +32,18 @@ class ContainerOps(BaseCommandRunner):
             for entity in directory.iterdir() 
             if entity.is_dir()
         ]
+
+    def validate_name(self, name: str, existing_names: List[str], entity_type: str) -> bool:
+        if not name:
+            WindowLog.log_error(f"{entity_type} name cannot be empty")
+            return False
+        if ' ' in name:
+            WindowLog.log_error(f"{entity_type} name cannot contain whitespace")
+            return False
+        if name in existing_names:
+            WindowLog.log_error(f"{entity_type} '{name}' already exists")
+            return False
+        return True
 
     def get_container_status(self, container_name: str) -> ContainerStatus:
         """Get current status of a container"""

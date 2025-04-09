@@ -40,15 +40,6 @@ class GuiCallbacks:
     def _get_names_from_model(self, model) -> List[str]:
         return [model.item(i, 0).text() for i in range(model.rowCount())]
 
-    def _validate_name(self, name: str, existing_names: List[str], entity_type: str) -> bool:
-        if not name:
-            WindowLog.log_error(f"{entity_type} name cannot be empty")
-            return False
-        if name in existing_names:
-            WindowLog.log_error(f"{entity_type} '{name}' already exists")
-            return False
-        return True
-
     def _handle_dialog_result(self, dialog: QDialog, operation_name: str) -> Optional[Tuple]:
         if dialog.exec() != QDialog.DialogCode.Accepted:
             return None
@@ -75,7 +66,7 @@ class GuiCallbacks:
         base_image = dialog_result.base_image
         network_enabled = dialog_result.network_enabled
 
-        if not self._validate_name(name, template_names, "Template"):
+        if not self.command_runner.validate_name(name, template_names, "Template"):
             return
 
         WindowLog.log_info(f"Creating template '{name}' with base image '{base_image}'...")
@@ -108,7 +99,7 @@ class GuiCallbacks:
         network_enabled = dialog_result.network_enabled
         port_mappings = dialog_result.port_mappings
 
-        if not self._validate_name(name, capsule_names, "Capsule"):
+        if not self.command_runner.validate_name(name, capsule_names, "Capsule"):
             return
 
         WindowLog.log_info(f"Creating capsule '{name}' with template '{template_name}'...")
@@ -135,7 +126,7 @@ class GuiCallbacks:
 
     def __start_container_background_task(self, name: str):
         result = self.command_runner.start_container(name)
-        if not result:
+        if not result.success:
             WindowLog.log_error(result.error_message)
 
     def stop_container(self):

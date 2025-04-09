@@ -20,6 +20,7 @@
 import subprocess
 import time
 
+from .container_ops import ContainerStatus
 from .base import BaseCommandRunner, CommandResult
 from utils import (
     get_xpra_socket_path, get_capsule_dir
@@ -40,6 +41,12 @@ class XpraOps(BaseCommandRunner):
                 return CommandResult(False, f"Xpra version 6.x required. Found: {result.output}")
         except Exception as e:
             return CommandResult(False, f"Xpra not installed or not in PATH: {e}")
+
+        if self.get_container_status(capsule_name) != ContainerStatus.RUNNING:
+            return CommandResult(False, "Capsule is not running")
+
+        if self.xpra_is_attached(capsule_name):
+            return CommandResult(False, "Xpra already attached to this capsule")
 
         capsule_dir = get_capsule_dir(capsule_name)
         socket_path = get_xpra_socket_path(capsule_name)
@@ -73,6 +80,12 @@ class XpraOps(BaseCommandRunner):
 
     def xpra_detach(self, capsule_name: str) -> CommandResult:
         """Detach xpra from capsule"""
+        if self.get_container_status(capsule_name) != ContainerStatus.RUNNING:
+            return CommandResult(False, "Capsule is not running")
+        
+        if not self.xpra_is_attached(capsule_name):
+            return CommandResult(False, "Xpra not attached to this capsule")
+
         socket_path = get_xpra_socket_path(capsule_name)
         result = self._run_command(["xpra", "detach", f"socket:{socket_path}"])
         if not result.success:

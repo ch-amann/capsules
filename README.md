@@ -91,20 +91,32 @@ sudo pacman -S podman xpra python-pyqt6
 ```
 
 ### Run the Application
-Make the script executable:
-```bash
-chmod +x capsules.py
-```
-
 Launch Capsules:
-```bash
-./capsules.py
-```
-
-Or run with Python directly:
 ```bash
 python3 capsules.py
 ```
+
+Launch the commandline interface:
+```bash
+python3 capsules_cli.py
+```
+
+```Text
+usage: capsules_cli.py [-h] {list,template,capsule} ...
+
+Capsules CLI
+
+positional arguments:
+  {list,template,capsule}
+                        Available commands
+    list                List templates, capsules or baseimages
+    template            Template operations
+    capsule             Capsule operations
+
+options:
+  -h, --help            show this help message and exit
+```
+
 
 ## 📜 License
 

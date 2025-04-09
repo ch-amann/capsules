@@ -337,14 +337,10 @@ class MainWindow(QMainWindow):
 
     def _update_templates_tree(self) -> None:
         """Update templates tree with current data"""
-        templates = self.command_runner.fetch_entities(Entity.TEMPLATE)
+        templates = self.command_runner.get_existing_templates()
         
         for template in templates:
-            status = self.command_runner.get_container_status(template)
-            base_image = self.command_runner.get_template_base_image(template)
-            network = self.command_runner.get_container_network(template)
-            
-            row_data = [template, base_image, status.value, network]
+            row_data = [template.name, template.base_image, template.status.value, template.network]
             row_items = [QStandardItem(str(item)) for item in row_data]
             
             for item in row_items:
@@ -353,16 +349,11 @@ class MainWindow(QMainWindow):
 
     def _update_capsules_tree(self) -> None:
         """Update capsules tree with current data"""
-        capsules = self.command_runner.fetch_entities(Entity.CAPSULE)
+        capsules = self.command_runner.get_existing_capsules()
         
         for capsule in capsules:
-            status = self.command_runner.get_container_status(capsule)
-            template = self.command_runner.get_capsule_template(capsule)
-            network = self.command_runner.get_container_network(capsule)
-            ports = self.command_runner.get_container_ports(capsule)
-            xpra_attached = "Yes" if self.command_runner.xpra_is_attached(capsule) else "No"
-            
-            row_data = [capsule, template, status.value, network, ports, xpra_attached]
+            xpra_attached = "Yes" if capsule.xpra_attached else "No"
+            row_data = [capsule.name, capsule.template, capsule.status.value, capsule.network, capsule.ports, xpra_attached]
             row_items = [QStandardItem(str(item)) for item in row_data]
             
             for item in row_items:

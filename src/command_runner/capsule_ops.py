@@ -20,16 +20,25 @@
 import os
 from pathlib import Path
 from typing import Optional, List
-
-import traceback
+from dataclasses import dataclass
 
 from .base import BaseCommandRunner, CommandResult
+from misc import ContainerStatus, Entity
 from utils import (
     get_capsule_dir, get_capsule_shared_dir, check_capsule_exists,
     check_template_exists, get_xpra_socket_path,
     get_capsule_shared_dir, get_template_mount_directories
 )
 from window_log import WindowLog
+
+@dataclass
+class CapsuleData:
+    name: str
+    template: str
+    status: ContainerStatus
+    network: str
+    ports: str
+    xpra_attached: bool
 
 class CapsuleOps(BaseCommandRunner):
     def create_capsule(self, capsule_name: str, template_name: str, network_enabled: bool, port_mappings: List[str]) -> CommandResult:
@@ -64,6 +73,18 @@ class CapsuleOps(BaseCommandRunner):
             return CommandResult(success=True)
         except Exception as e:
             return CommandResult(False, str(e))
+
+    def get_existing_capsules(self) -> List[CapsuleData]:
+        capsule_names = self.fetch_entities(Entity.CAPSULE)
+        capsules = []
+        for name in capsule_names:
+            template = self.get_capsule_template(name)
+            status = self.get_container_status(name)
+            network = self.get_container_network(name)
+            ports = self.get_container_ports(name)
+            xpra_attached = self.xpra_is_attached(name)
+            capsules.append(CapsuleData(name=name, template=template, status=status, network=network, ports=ports, xpra_attached=xpra_attached))
+        return capsules
 
     def get_capsule_template(self, capsule_name: str) -> str:
         """Get template name for a capsule"""
@@ -154,5 +175,4 @@ class CapsuleOps(BaseCommandRunner):
 
         except Exception as e:
             WindowLog.log_error(f"Failed to create capsule container: {e}")
-            print(traceback.format_exc())
             return CommandResult(False, str(e))
