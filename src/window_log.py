@@ -49,9 +49,9 @@ class WindowLog:
 
     # Color configuration for different log levels
     _log_configs: Dict[str, LogConfig] = {
-        'force':   LogConfig('black',  WindowLogLevel.NONE),
+        'force':   LogConfig('regular',  WindowLogLevel.NONE),
         'debug':   LogConfig('gray',   WindowLogLevel.DEBUG),
-        'info':    LogConfig('black',  WindowLogLevel.INFO),
+        'info':    LogConfig('regular',  WindowLogLevel.INFO),
         'warning': LogConfig('orange', WindowLogLevel.WARNING),
         'error':   LogConfig('red',    WindowLogLevel.ERROR)
     }

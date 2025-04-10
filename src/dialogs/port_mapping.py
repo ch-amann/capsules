@@ -22,7 +22,7 @@ from .validators import HostPortValidator, ContainerPortValidator
 
 class PortMappingWidget(QWidget):
     """Widget for host:container port mapping entry"""
-    MIN_HOST_PORT = 1025
+    MIN_HOST_PORT = 1024
     MIN_CONTAINER_PORT = 1
     MAX_PORT = 65535
 

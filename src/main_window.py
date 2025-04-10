@@ -27,7 +27,7 @@ from PyQt6.QtWidgets import (
     QPushButton, QTextEdit, QMenu, QLabel, QSystemTrayIcon, QComboBox,
     QHeaderView
 )
-from PyQt6.QtGui import QStandardItemModel, QStandardItem, QCloseEvent, QIcon
+from PyQt6.QtGui import QStandardItemModel, QStandardItem, QCloseEvent, QIcon, QPalette
 from PyQt6.QtCore import Qt, QEvent
 
 from window_log import WindowLog, WindowLogLevel
@@ -67,6 +67,8 @@ class MainWindow(QMainWindow):
         self.icon = icon
         self.uiDisabled = False
         self.buttons: Dict[str, QPushButton] = {}  # Initialize buttons dict
+        self.text_color = app.palette().color(QPalette.ColorRole.Text).name()
+
         
         # Initialize core components
         self._init_core_components()
@@ -362,6 +364,8 @@ class MainWindow(QMainWindow):
 
     def append_log_message(self, color: str, message: str) -> None:
         """Append a colored message to the log text box"""
+        if color == 'regular':
+            color = self.text_color
         html_message = f'<span style="color: {color};">{message}</span>'
         self.logs_textbox.append(html_message)
         scrollbar = self.logs_textbox.verticalScrollBar()
