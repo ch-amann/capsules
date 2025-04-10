@@ -156,15 +156,19 @@ def main():
     
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
     
-    # List command
-    list_parser = subparsers.add_parser('list', help='List templates, capsules or baseimages')
-    list_parser.add_argument('type', choices=['templates', 'capsules', 'baseimages'],
-                            help='What to list')
-    list_parser.add_argument('--name', help='Filter by name')
+    # Base image commands
+    baseimage_parser = subparsers.add_parser('baseimage', help='Base image operations')
+    baseimage_subparsers = baseimage_parser.add_subparsers(dest='subcommand')
+    
+    baseimage_list = baseimage_subparsers.add_parser('list', help='List base images')
+    baseimage_list.add_argument('--name', help='Filter by name')
 
     # Template commands
     template_parser = subparsers.add_parser('template', help='Template operations')
     template_subparsers = template_parser.add_subparsers(dest='subcommand')
+    
+    template_list = template_subparsers.add_parser('list', help='List templates')
+    template_list.add_argument('--name', help='Filter by name')
     
     template_start = template_subparsers.add_parser('start', help='Start template')
     template_start.add_argument('template_name', help='Name of template to start')
@@ -191,6 +195,9 @@ def main():
     # Capsule commands
     capsule_parser = subparsers.add_parser('capsule', help='Capsule operations')
     capsule_subparsers = capsule_parser.add_subparsers(dest='subcommand')
+    
+    capsule_list = capsule_subparsers.add_parser('list', help='List capsules')
+    capsule_list.add_argument('--name', help='Filter by name')
     
     capsule_start = capsule_subparsers.add_parser('start', help='Start capsule')
     capsule_start.add_argument('capsule_name', help='Name of capsule to start')
@@ -229,6 +236,10 @@ def main():
         parser.print_help()
         return 1
     
+    if args.command == 'baseimage' and not args.subcommand:
+        baseimage_parser.print_help()
+        return 1
+    
     if args.command == 'template' and not args.subcommand:
         template_parser.print_help()
         return 1
@@ -240,31 +251,23 @@ def main():
     command_runner = CommandRunner(Settings())
     
     try:
-        if args.command == 'list':
-            if args.type == 'templates':
-                return print_entity_list(
-                    command_runner.get_existing_templates(),
-                    ["Name", "BaseImage", "Status", "Network"],
-                    lambda t: [t.name, t.base_image, t.status.value, t.network],
-                    args.name
-                )
-            elif args.type == 'capsules':
-                return print_entity_list(
-                    command_runner.get_existing_capsules(),
-                    ["Name", "Template", "Status", "Network", "Ports", "Xpra"],
-                    lambda c: [c.name, c.template, c.status.value, c.network, 
-                             c.ports, c.xpra_attached],
-                    args.name
-                )
-            else:  # baseimages
+        if args.command == 'baseimage':
+            if args.subcommand == 'list':
                 return print_entity_list(
                     command_runner.get_available_base_images(),
                     ["Name"],
                     lambda b: [b],
                     args.name
                 )
-
+                
         elif args.command == 'template':
+            if args.subcommand == 'list':
+                return print_entity_list(
+                    command_runner.get_existing_templates(),
+                    ["Name", "BaseImage", "Status", "Network"],
+                    lambda t: [t.name, t.base_image, t.status.value, t.network],
+                    args.name
+                )
             if args.subcommand in ['start', 'stop', 'restart']:
                 return handle_container_operation(command_runner, args.subcommand, 
                                                'template', args.template_name)
@@ -304,6 +307,14 @@ def main():
                                   command_runner.delete_template, 'template')
 
         elif args.command == 'capsule':
+            if args.subcommand == 'list':
+                return print_entity_list(
+                    command_runner.get_existing_capsules(),
+                    ["Name", "Template", "Status", "Network", "Ports", "Xpra"],
+                    lambda c: [c.name, c.template, c.status.value, c.network, 
+                             c.ports, c.xpra_attached],
+                    args.name
+                )
             if args.subcommand in ['start', 'stop', 'restart']:
                 return handle_container_operation(command_runner, args.subcommand, 
                                                'capsule', args.capsule_name)
