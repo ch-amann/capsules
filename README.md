@@ -102,14 +102,14 @@ python3 capsules_cli.py
 ```
 
 ```Text
-usage: capsules_cli.py [-h] {list,template,capsule} ...
+usage: capsules_cli.py [-h] {baseimage,template,capsule} ...
 
 Capsules CLI
 
 positional arguments:
-  {list,template,capsule}
+  {baseimage,template,capsule}
                         Available commands
-    list                List templates, capsules or baseimages
+    baseimage           Base image operations
     template            Template operations
     capsule             Capsule operations
 
